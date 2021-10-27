@@ -321,6 +321,14 @@ class Analyseur:
                         print("Erreur de syntaxe 2")
                         self.err_s = True
 
+def lire_chaine(nom_fichier):
+    data = []
+    with open(nom_fichier) as fichier:
+        data = fichier.read().split(" ")
+        data[-1] = data[-1].replace('\n', '')
+    data.append('$')
+    return data
+
 
 def main():
     # chaine a analyser
@@ -333,11 +341,11 @@ def main():
     chaine10 = ["main()", "{","if", "id","=", "nombre", "id","=","nombre", ";", "else", "id","=", "nombre",";",";", "}", "$"]
     chaine11 = ["main()", "{","if", "id", "nombre", "id","=","nombre", ";", "else", "id","=", "nombre",";",";", "}", "$"]
 
+    chaine12 = lire_chaine("chaine.txt")
+
     grammaire = gen_grammaire(non_terminaux, terminaux)
     analyseur = Analyseur(grammaire, table_analyse)
-    analyseur.analyser(chaine10)
-
-
+    analyseur.analyser(chaine12)
 
 
 
