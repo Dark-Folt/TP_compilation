@@ -39,7 +39,7 @@ terminaux = {
     13: "{"
 }
 
-grammaire = {
+liste_production = {
     0: "<Programme ::= main(){<liste_declarations><liste_instructions>}",
     1: "<liste_declarations> ::= <une_declaration><liste_declarations>",
     2: "<liste_declarations> ::= vide",
@@ -102,9 +102,10 @@ class Regle:
 
 
 class Grammaire:
-    def __init__(self) -> None:
+    def __init__(self, non_terminaux, terminaux) -> None:
+        self.non_terminaux = non_terminaux
+        self.terminaux = terminaux
         self.regles = []
-        pass
 
     def ajouter_regle(self, regle):
         self.regles.append(regle)
@@ -140,9 +141,9 @@ table_analyse = [
 
 
 
-def gen_grammaire() -> Grammaire:
+def gen_grammaire(non_terminaux, terminaux) -> Grammaire:
     # variable
-    g =  Grammaire()
+    g =  Grammaire(non_terminaux, terminaux)
 
     # liste des regles
     # r0 ::= main(){<liste_declarations><liste_instructions>}
@@ -247,76 +248,81 @@ def gen_grammaire() -> Grammaire:
 
 
 
-def get_key_of_value(chaine):
-    for key, value in terminaux.items():
-        if chaine == value : return key
 
-    for key, value in non_terminaux.items():
-        if chaine == value : return key
 
-    return None
+class Analyseur:
+    def __init__(self, grammaire, table_analyse):
+        self.grammaire = grammaire
+        self.table_analyse = table_analyse
+        self.pile = []
+        self.err_s = False
+        self.ch_ok = False
 
-# la chaine actuelle est tout le temps chaine[0]
-# car si le symbole est reconnu alors on del chaine[0]
-def analyseur(chaine):
-    grammaire = gen_grammaire()
-    # Une pile : initialisee a l'axiome P
-    print("chaine à analyser: ", end ='')
-    print("".join(chaine[:-1]))
-    pile = ['$', non_terminaux.get(0)]
-    err_s = False
-    ch_ok = False
-    while err_s == False and ch_ok == False:
-    # sommet de pile
-        x = pile[-1] #le sommet de pile
-        i = get_key_of_value(chaine[0])
+    def get_key_of_value(self, chaine):
+        for key, value in terminaux.items():
+            if chaine == value : return key
 
-        if x in non_terminaux.values() and i is not None:
-            indices = [] # contient x si x a plusieurs productions
-            for key, value in non_terminaux.items():
-                if x == value:
-                    indices.append(key)
-            nr = None
-            for c in indices:
-                if table_analyse[c][i] != -1:
-                    nr = table_analyse[c][i]
-                    pile.pop()
-                    r = grammaire.regles[nr]
-                    # ajout des regles dans la pile
-                    pile.extend(r.partie_droite[::-1])
-                    # emettre en sortie la rgle
-                    r.afficher()
-                # break
-            indices.clear()
-            if nr is None:
-                print("Erreur 8")
-                break
-        else:
-            if x == '$':
-                if chaine[0] == '$':
-                    print("la chaine acceptée")
-                    ch_ok = True
-                else:
-                    print("Erreur de syntaxe 1")
-                    err_s = True
+        for key, value in non_terminaux.items():
+            if chaine == value : return key
+
+        return None
+
+    # la chaine actuelle est tout le temps chaine[0]
+    # car si le symbole est reconnu alors on del chaine[0]
+    def analyser(self, chaine):
+        # Une pile : initialisee a l'axiome P
+        print("chaine à analyser: ", end ='')
+        print("".join(chaine[:-1]))
+        self.pile = ['$', self.grammaire.non_terminaux.get(0)]
+        self.err_s = False
+        self.ch_ok = False
+        while self.err_s == False and self.ch_ok == False:
+        # sommet de pile
+            x = self.pile[-1] #le sommet de pile
+            i = self.get_key_of_value(chaine[0])
+
+            if x in self.grammaire.non_terminaux.values() and i is not None:
+                indices = [] # contient x si x a plusieurs productions
+                for key, value in self.grammaire.non_terminaux.items():
+                    if x == value:
+                        indices.append(key)
+                nr = None
+                for c in indices:
+                    if self.table_analyse[c][i] != -1:
+                        nr = self.table_analyse[c][i]
+                        self.pile.pop()
+                        r = self.grammaire.regles[nr]
+                        # ajout des regles dans la pile
+                        self.pile.extend(r.partie_droite[::-1])
+                        # emettre en sortie la rgle
+                        r.afficher()
+                    # break
+                indices.clear()
+                if nr is None:
+                    print("Erreur 8")
+                    break
             else:
-                if x == chaine[0]:
-                    pile.pop()
-                    # on passe au symbole suivant
-                    del chaine[0]
-                elif x == 'vide': # on ignore la chaine vide
-                    pile.remove(x)
-                    continue
+                if x == '$':
+                    if chaine[0] == '$':
+                        print("la chaine acceptée")
+                        self.ch_ok = True
+                    else:
+                        print("Erreur de syntaxe 1")
+                        self.err_s = True
                 else:
-                    print("Erreur de syntaxe 2")
-                    err_s = True
-        # print(pile)
-    return err_s, ch_ok
+                    if x == chaine[0]:
+                        self.pile.pop()
+                        # on passe au symbole suivant
+                        del chaine[0]
+                    elif x == 'vide': # on ignore la chaine vide
+                        self.pile.remove(x)
+                        continue
+                    else:
+                        print("Erreur de syntaxe 2")
+                        self.err_s = True
 
 
-
-if __name__ == '__main__':
-
+def main():
     # chaine a analyser
     chaine1 = ["main()", "{", "}", "$"]
     chaine2 = ["main()", "{","vide", "vide", "}" ,"$" ]
@@ -325,6 +331,15 @@ if __name__ == '__main__':
     chaine8 = ["main()", "{","int", "id", "}", "$"]
     chaine9 = ["main()", "{","vide", "else", "}", "$"]
     chaine10 = ["main()", "{","if", "id","=", "nombre", "id","=","nombre", ";", "else", "id","=", "nombre",";",";", "}", "$"]
-
     chaine11 = ["main()", "{","if", "id", "nombre", "id","=","nombre", ";", "else", "id","=", "nombre",";",";", "}", "$"]
-    analyseur(chaine10)
+
+    grammaire = gen_grammaire(non_terminaux, terminaux)
+    analyseur = Analyseur(grammaire, table_analyse)
+    analyseur.analyser(chaine10)
+
+
+
+
+
+if __name__ == '__main__':
+    main()
