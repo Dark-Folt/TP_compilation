@@ -1,0 +1,36 @@
+
+/// Ensemble premier
+
+
+premier(<Programme>) = {'main(){'}
+
+premier(<liste_declarations>) = premier(<une_declaration>)= premier(<type>) = {'int', 'float'}
+
+premier(<liste_instructions>) = premier(<une_instruction>) = premier(<affectation>) U premier(<test>) = {'id'} U {'if'} = {'id', 'if'}
+
+premier(<affectation>) = {'id'}
+
+premier(<test>) = {'if'}
+
+premier(<condition>) = {'id'}
+
+premier(<operateur>) = {'<', '>', '=''}
+
+
+// Emsemble des suivants
+
+suivant(<liste_declarations>) :-
+    <programme> ::= main(){<liste_declarations><liste_instructions>}
+              1-::= main(){<liste_declarations><une_instruction><liste_instructions>}
+              2-::= main(){<une_declaration><liste_declarations><liste_instructions>}
+                ::= main(){<une_declaration><liste_declarations><une_instruction><liste_instructions>}
+                ::= main(){<une_declaration><liste_declarations><une_instruction>vide}
+                  3-::= main(){<une_declaration><liste_declarations><affectation>}
+                      ::= main(){<une_declaration><liste_declarations><affectation>} = {'id'}
+                  4-::= main(){<une_declaration><liste_declarations><test>} = {'if'}
+
+
+suivant(<liste_instruction>) :-
+    <programme> ::= main(){<liste_declarations><liste_instructions>}
+                ::= main(){<liste_declarations><une_instruction><liste_instruction>} = {'}'}
+
