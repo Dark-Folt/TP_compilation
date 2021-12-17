@@ -21,7 +21,7 @@
 
 
 
-
+# Dictionnaire de la liste des terminaux 
 terminaux = {
     0 : "main()",
     1 : "id",
@@ -39,25 +39,8 @@ terminaux = {
     13: "{"
 }
 
-liste_production = {
-    0: "<Programme ::= main(){<liste_declarations><liste_instructions>}",
-    1: "<liste_declarations> ::= <une_declaration><liste_declarations>",
-    2: "<liste_declarations> ::= vide",
-    3: "<une_declaration> ::= <type>id",
-    4: "<liste_instructions> ::= <une_instruction><liste_instructions>",
-    5: "<liste_instructions> ::= vide",
-    6: "<une_instruction> ::= <affectation>",
-    7: "<une_instruction> ::= <test>",
-    8: "<type> ::= int",
-    9 : "<type> ::= float",
-    10: "<affectation> ::= id=nombre;",
-    11: "<test> ::= if<condition><instruction>else<instruction>;",
-    12: "<condition> ::= id<operateur>nombre",
-    13: "<operateur> ::= <",
-    14: "<operateur> ::= >",
-    15: "<operateur> ::= =",
-}
 
+# Dictinnaire qui stocke les non terminaux pour creer les regles par la suite
 non_terminaux = {
     0: "<Programme>",
     1: "<liste_declarations>",
@@ -77,6 +60,11 @@ non_terminaux = {
     15: "<operateur>",
 }
 
+
+# Cette class reprente une Regle
+# une regle est creer grace au deux diconnaite terminaux et non_terminaux
+# la partie gauche d'une regle sera indinxé dans non_terminaux 
+# et la partie droite sera indexé par les deux dictionnaires
 class Regle:
     def __init__(self, g) -> None:
         self.partie_gauche = g
@@ -119,7 +107,11 @@ class Grammaire:
 
 
 
-
+"""
+    Cette matrice represente la table d'analyse
+    table_analyse [][] = -1 : veut dire qu'il n'a pas de regle
+    table_analyse [][] = n : numero de la regle a lancer
+"""
 table_analyse = [
     [0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -141,6 +133,12 @@ table_analyse = [
 
 
 
+"""
+    Cette fonction permet de generer une grammaire
+    On creer une instance  g de Grammaire
+    On lui ajoute g toute toutes les regles a la main
+    et est retourner la grammaire g
+"""
 def gen_grammaire(non_terminaux, terminaux) -> Grammaire:
     # variable
     g =  Grammaire(non_terminaux, terminaux)
@@ -249,6 +247,7 @@ def gen_grammaire(non_terminaux, terminaux) -> Grammaire:
 
 
 
+# Class Analyseur exécute l'algorthme
 
 class Analyseur:
     def __init__(self, grammaire, table_analyse):
@@ -258,6 +257,8 @@ class Analyseur:
         self.err_s = False
         self.ch_ok = False
 
+    # Cette fonction retourne cles d'un symbole
+    # au niveau des ternimaux ou des non terminaux
     def get_key_of_value(self, chaine):
         for key, value in terminaux.items():
             if chaine == value : return key
@@ -321,6 +322,11 @@ class Analyseur:
                         print("Erreur de syntaxe 2")
                         self.err_s = True
 
+"""
+    Cette fonction lie une chaine a partir d'un fichier
+    On stocke toute la chaine un tableau data.
+    On enleve le caractere de fin de chaine \n avec data[-1]
+"""
 def lire_chaine(nom_fichier):
     data = []
     with open(nom_fichier) as fichier:
@@ -341,11 +347,21 @@ def main():
     chaine10 = ["main()", "{","if", "id","=", "nombre", "id","=","nombre", ";", "else", "id","=", "nombre",";",";", "}", "$"]
     chaine11 = ["main()", "{","if", "id", "nombre", "id","=","nombre", ";", "else", "id","=", "nombre",";",";", "}", "$"]
 
-    chaine12 = lire_chaine("chaine.txt")
+    chaine12 = lire_chaine("chaine_err.txt")
+    chaine13 = lire_chaine("chaine_acc.txt")
 
     grammaire = gen_grammaire(non_terminaux, terminaux)
     analyseur = Analyseur(grammaire, table_analyse)
+
+    # Lecture apartir d'unfichier
     analyseur.analyser(chaine12)
+    #analyseur.analyser(chaine13)
+
+    # chaine 10 acceptée
+    #analyseur.analyser(chaine10)
+
+    # chaine 11 non acceptée
+    #analyseur.analyser(chaine11)
 
 
 
