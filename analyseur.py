@@ -354,14 +354,14 @@ def main():
     analyseur = Analyseur(grammaire, table_analyse)
 
     # Lecture apartir d'unfichier
-    analyseur.analyser(chaine12)
+    #analyseur.analyser(chaine12)
     #analyseur.analyser(chaine13)
 
     # chaine 10 acceptée
     #analyseur.analyser(chaine10)
 
     # chaine 11 non acceptée
-    #analyseur.analyser(chaine11)
+    analyseur.analyser(chaine11)
 
 
 
